@@ -154,3 +154,64 @@
 `define OpRt_Bltz   5'b00000
 `define OpRt_Bltzal 5'b10000
 
+
+/*ALU set*/
+
+`define ALUOp_Add  9'd00
+`define ALUOp_Sub  9'd01
+`define ALUOp_Nor  9'd02
+`define ALUOp_Or   9'd03
+`define ALUOp_And  9'd04
+`define ALUOp_Xor  9'd05
+`define ALUOp_Sll  9'd06
+`define ALUOp_Srl  9'd07
+`define ALUOp_Lui  9'd08
+
+`define ALUOp_Lb  `ALUOp_Add
+`define ALUOp_Lbu `ALUOp_Add
+`define ALUOp_Lh  `ALUOp_Add
+`define ALUOp_Lhu `ALUOp_Add 
+`define ALUOp_Lw  `ALUOp_Add
+`define ALUOp_Sb  `ALUOp_Add
+`define ALUOp_Sh  `ALUOp_Add
+`define ALUOp_Sw  `ALUOp_Add
+
+
+
+/*
+ RegW  =DataPath[0];
+ RdSrc =DataPath[1];
+ ALUSrc=DataPath[2];
+ MemR  =DataPath[3];
+ MemW  =DataPath[4];
+*/
+
+
+`define Dp_Itype  5'b00111
+`define Dp_Rtype  5'b00001
+`define Dp_MRtype 5'b01001
+`define Dp_MWtype 5'b10000
+/*Datapath set*/
+`define Dp_Ori  `Dp_Itype
+`define Dp_Andi `Dp_Itype
+`define Dp_Addi `Dp_Itype
+`define Dp_Xori `Dp_Itype
+`define Dp_Xor  `Dp_Rtype
+`define Dp_Add  `Dp_Rtype
+`define Dp_Sub  `Dp_Rtype
+`define Dp_Nor  `Dp_Rtype
+`define Dp_Or   `Dp_Rtype
+`define Dp_And  `Dp_Rtype
+`define Dp_Xor  `Dp_Rtype
+`define Dp_Sll  `Dp_Rtype
+`define Dp_Srl  `Dp_Rtype
+
+`define Dp_Lui  `Dp_Itype
+`define Dp_Lb   `Dp_MRtype
+`define Dp_Lbu  `Dp_MRtype
+`define Dp_Lh   `Dp_MRtype
+`define Dp_Lhu  `Dp_MRtype
+`define Dp_Lw   `Dp_MRtype
+`define Dp_Sb   `Dp_MWtype
+`define Dp_Sh   `Dp_MWtype
+`define Dp_Sw   `Dp_MWtype

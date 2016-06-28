@@ -12,7 +12,7 @@
 
 module regfile #(parameter WIDTH = 16,parameter DEPTH = 64)(
 input clk,
-input we_1,we_2,we_3,we_4,
+input we_1,
 input [$clog2(DEPTH)-1:0]read_reg1,read_reg2,
 input [$clog2(DEPTH)-1:0]write_reg1,
 input [WIDTH-1:0]write_reg1_data,
@@ -34,9 +34,9 @@ initial begin //test use
 		file[i]=32'd0;
 	end
 
-always @(`clk_trigger_edge clk)
+always @(posedge clk)
 begin
-	if(we_1)
+	if(we_1&(write_reg1!=5'd0))
 		file[write_reg1]<=write_reg1_data;
 
 end
