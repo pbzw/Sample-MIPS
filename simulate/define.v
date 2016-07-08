@@ -15,8 +15,9 @@
 /* Op Code Categories */
 `define Op_Type_R       6'b00_0000  // Standard R-Type instructions
 `define Op_Type_R2      6'b01_1100  // Extended R-Like instructions
-`define Op_Type_Regimm  6'b00_0001  // Branch extended instructions
+`define Op_Type_BI	    6'b00_0001  // Branch extended instructions
 `define Op_Type_CP0     6'b01_0000  // Coprocessor 0 instructions
+`define Op_Type_Regimm  6'b00_0001
 // --------------------------------------
 `define Op_Add      `Op_Type_R
 `define Op_Addi     6'b00_1000
@@ -69,7 +70,7 @@
 `define Op_Nor      `Op_Type_R
 `define Op_Or       `Op_Type_R
 `define Op_Ori      6'b00_1101
-`define Op_Pref     6'b11_0011  /
+`define Op_Pref     6'b11_0011  
 `define Op_Sb       6'b10_1000
 `define Op_Sc       6'b11_1000
 `define Op_Sh       6'b10_1001
@@ -102,7 +103,7 @@
 `define Op_Tne      `Op_Type_R
 `define Op_Tnei     `Op_Type_BI
 `define Op_Xor      `Op_Type_R
-`define Op_Xori     6'b00_1110
+`define Op_Xori     6'b00_111000_1110
 
 /* Function Codes for R-Type Op Codes */
 `define Funct_Add     6'b10_0000
@@ -157,15 +158,17 @@
 
 /*ALU set*/
 
-`define ALUOp_Add  9'd00
-`define ALUOp_Sub  9'd01
-`define ALUOp_Nor  9'd02
-`define ALUOp_Or   9'd03
-`define ALUOp_And  9'd04
-`define ALUOp_Xor  9'd05
-`define ALUOp_Sll  9'd06
-`define ALUOp_Srl  9'd07
-`define ALUOp_Lui  9'd08
+`define ALUOp_Add  9'd01
+`define ALUOp_Sub  9'd02
+`define ALUOp_Nor  9'd03
+`define ALUOp_Or   9'd04
+`define ALUOp_And  9'd05
+`define ALUOp_Xor  9'd06
+`define ALUOp_Sll  9'd07
+`define ALUOp_Srl  9'd08
+`define ALUOp_Lui  9'd09
+`define ALUOp_Clo  9'd10
+`define ALUOp_Clz  9'd11
 
 `define ALUOp_Lb  `ALUOp_Add
 `define ALUOp_Lbu `ALUOp_Add
@@ -176,7 +179,14 @@
 `define ALUOp_Sh  `ALUOp_Add
 `define ALUOp_Sw  `ALUOp_Add
 
-
+`define Beq     4'd1
+`define Bgez    4'd2
+`define Bgezal  4'd3
+`define Bgtz    4'd4
+`define Blez    4'd5
+`define Bltz    4'd6
+`define Bltzal  4'd7
+`define Bne     4'd8
 
 /*
  RegW  =DataPath[0];
@@ -184,13 +194,23 @@
  ALUSrc=DataPath[2];
  MemR  =DataPath[3];
  MemW  =DataPath[4];
+ PCsrc =DataPath[6:5];
+ Link  =DataPath[7];
+ SelMOD=DataPath[9:8];
+ MdataS=DataPath[10];
 */
 
 
-`define Dp_Itype  5'b00111
-`define Dp_Rtype  5'b00001
-`define Dp_MRtype 5'b01001
-`define Dp_MWtype 5'b10000
+`define Dp_Itype  11'b00000000111
+`define Dp_Rtype  11'b00000000001
+`define Dp_MRtype 11'b00000001111
+`define Dp_MWtype 11'b00000010100
+
+`define Dp_Btype  11'b00000100000
+`define Dp_BLtype 11'b00010100001
+`define Dp_Jtype  11'b00001000000
+`define Dp_Jlink  11'b00011000001
+
 /*Datapath set*/
 `define Dp_Ori  `Dp_Itype
 `define Dp_Andi `Dp_Itype
@@ -203,15 +223,85 @@
 `define Dp_Or   `Dp_Rtype
 `define Dp_And  `Dp_Rtype
 `define Dp_Xor  `Dp_Rtype
-`define Dp_Sll  `Dp_Rtype
-`define Dp_Srl  `Dp_Rtype
+`define Dp_Sll   11'b0000000101
+`define Dp_Srl   11'b0000000101
 
 `define Dp_Lui  `Dp_Itype
-`define Dp_Lb   `Dp_MRtype
-`define Dp_Lbu  `Dp_MRtype
-`define Dp_Lh   `Dp_MRtype
-`define Dp_Lhu  `Dp_MRtype
-`define Dp_Lw   `Dp_MRtype
-`define Dp_Sb   `Dp_MWtype
-`define Dp_Sh   `Dp_MWtype
-`define Dp_Sw   `Dp_MWtype
+`define Dp_Lb   `Dp_MRtype+11'b10000000000
+`define Dp_Lbu  `Dp_MRtype+11'b00000000000
+`define Dp_Lh   `Dp_MRtype+11'b10100000000
+`define Dp_Lhu  `Dp_MRtype+11'b00100000000
+`define Dp_Lw   `Dp_MRtype+11'b01000000000
+`define Dp_Sb   `Dp_MWtype+11'b00000000000
+`define Dp_Sh   `Dp_MWtype+11'b00100000000
+`define Dp_Sw   `Dp_MWtype+11'b01000000000
+
+`define Dp_Beq   `Dp_Btype
+`define Dp_Bgez  `Dp_Btype
+`define Dp_Bgezal`Dp_BLtype
+`define Dp_Bgtz  `Dp_Btype
+`define Dp_Blez  `Dp_Btype
+`define Dp_Bltz  `Dp_Btype
+`define Dp_Bltzal`Dp_BLtype
+`define Dp_Bne   `Dp_Btype
+
+`define Dp_J     `Dp_Jtype
+`define Dp_Jal   `Dp_Jlink
+`define Dp_Jr    11'b00001100000
+`define Dp_Jalr  11'b00011100001
+/*
+assign ID_Wants_Rs=HazardDataPath[0];
+assign ID_Needs_Rs=HazardDataPath[1];
+assign ID_Wants_Rt=HazardDataPath[2];
+assign ID_Needs_Rt=HazardDataPath[3];
+assign EX_Wants_Rs=HazardDataPath[4];
+assign EX_Needs_Rs=HazardDataPath[5];
+assign EX_Wants_Rt=HazardDataPath[6];
+assign EX_Needs_Rt=HazardDataPath[7];*/
+
+/*Hazard Datapath set*/
+`define HDP_none   8'b00000000
+`define HDP_Itype  8'b00110011
+`define HDP_Rtype  8'b11111111
+`define HDP_MRtype 8'b11111111
+`define HDP_MWtype 8'b11111111
+`define HDP_Btype  8'b00000011
+
+/*Datapath set*/
+`define HDP_Ori  `HDP_Itype
+`define HDP_Andi `HDP_Itype
+`define HDP_Addi `HDP_Itype
+`define HDP_Xori `HDP_Itype
+`define HDP_Xor  `HDP_Rtype
+`define HDP_Add  `HDP_Rtype
+`define HDP_Sub  `HDP_Rtype
+`define HDP_Nor  `HDP_Rtype
+`define HDP_Or   `HDP_Rtype
+`define HDP_And  `HDP_Rtype
+`define HDP_Xor  `HDP_Rtype
+`define HDP_Sll  `HDP_Rtype
+`define HDP_Srl  `HDP_Rtype
+
+`define HDP_Lui  `HDP_Itype
+`define HDP_Lb   `HDP_MRtype
+`define HDP_Lbu  `HDP_MRtype
+`define HDP_Lh   `HDP_MRtype
+`define HDP_Lhu  `HDP_MRtype
+`define HDP_Lw   `HDP_MRtype
+`define HDP_Sb   `HDP_MWtype
+`define HDP_Sh   `HDP_MWtype
+`define HDP_Sw   `HDP_MWtype
+
+`define HDP_Beq   `HDP_Btype
+`define HDP_Bgez  `HDP_Btype
+`define HDP_Bgezal`HDP_Btype
+`define HDP_Bgtz  `HDP_Btype
+`define HDP_Blez  `HDP_Btype
+`define HDP_Bltz  `HDP_Btype
+`define HDP_Bltzal`HDP_Btype
+`define HDP_Bne   8'b00001111
+
+`define HDP_J     `HDP_none
+`define HDP_Jal   `HDP_none
+`define HDP_Jr    `HDP_Btype
+`define HDP_Jalr  `HDP_Btype

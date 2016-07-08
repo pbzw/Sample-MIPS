@@ -1,7 +1,7 @@
 `include "define.v"
 `define TestPattern 262143
-`define test_num  262143
-`define commit_signal Processor.regfile.we_1  //this signal link to your regfile's Write enable
+`define test_num  20000
+`define commit_signal Processor.MEM_WB.WB_inst_en  //this signal link to your regfile's Write enable
 `define Register Processor.regfile.file
 module MIPS_ALU_tb;
 
@@ -16,10 +16,10 @@ module MIPS_ALU_tb;
 	reg [`data_lentgh-1:0] rand_inst_mem[0:`TestPattern-1];
 
 	reg [31:0] ran;
-	integer i,j,seed1=310,erro=0;
+	integer i,j,seed1=1012,erro=0;
 	
 	//Rand Inst produce
-	reg [5:0]inst_type[0:15];//ADDi,Ori,Andi,Xori
+	reg [5:0]inst_type[0:7];//ADDi,Ori,Andi,Xori
 	reg [5:0]inst_Funct[0:7];
 	reg [4:0]Br_Funct[0:7];
 	
@@ -78,37 +78,37 @@ always@(*)
 initial begin
 		for(i=0;i<`TestPattern;i=i+1)begin
 		ran =$random(seed1);
-			case (inst_type[ran[31:28]])
-				`Op_Type_R:rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]};
+			case (inst_type[ran[31:29]])
+				`Op_Type_R:rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]};
 				`Op_Type_Regimm:begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:21],Br_Funct[ran[17:16]],ran[15:0]};
-					rand_inst_mem[i+1]=32'd0 ;
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:21],Br_Funct[ran[17:16]],ran[15:0]};
+					rand_inst_mem[i+1]<=32'd0 ;
 					i=i+1;end
 				`Op_J     :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]};
-					rand_inst_mem[i+1]=32'd0 ;
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]};
+					rand_inst_mem[i+1]<=32'd0 ;
 					i=i+1;end
 				`Op_Jal   :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]}; 
-					rand_inst_mem[i+1]=32'd0 ; 
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:11],5'b0,inst_Funct[ran[2:0]]}; 
+					rand_inst_mem[i+1]<=32'd0 ; 
 					i=i+1;end
 				`Op_Beq   :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:0]};
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:0]};
 					rand_inst_mem[i+1]=32'd0 ;
 					i=i+1; end
 				`Op_Bgtz  :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:21],5'b0,ran[15:0]}; 
-					rand_inst_mem[i+1]=32'd0 ;
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:21],5'b0,ran[15:0]}; 
+					rand_inst_mem[i+1]<=32'd0 ;
 					i=i+1; end
 				`Op_Blez  :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:21],5'b0,ran[15:0]}; 
-					rand_inst_mem[i+1]=32'd0 ; 
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:21],5'b0,ran[15:0]}; 
+					rand_inst_mem[i+1]<=32'd0 ; 
 					i=i+1; end
 				`Op_Bne   :begin 
-					rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:0]};
-					rand_inst_mem[i+1]=32'd0 ;
+					rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:0]};
+					rand_inst_mem[i+1]<=32'd0 ;
 					i=i+1; end
-				default:rand_inst_mem[i]={inst_type[ran[31:29]],ran[25:0]};
+				default:rand_inst_mem[i]<={inst_type[ran[31:29]],ran[25:0]};
 			endcase
 		end
 	end
@@ -279,14 +279,14 @@ always@(posedge clk)
 
 always #5 clk=~clk;
 
-always@(posedge clk)
+always@(negedge clk)
 begin
 if(`commit_signal)
  begin
      $display ($time, "--------------------------" );
      $display ($time, " NOW inst Address  %x Instruction=%x Commit Inst Count %d ERRO Count = %d",VM_PC,VM_inst_in,commit_num,erro);
 	 $display ($time, "--------------------------" );
-     for(i=0;i<32;i=i+1)
+     for(i=1;i<32;i=i+1)
 	 begin
 	 if(VM_Reg[i]!==`Register[i])
 	  begin

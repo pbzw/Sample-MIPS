@@ -36,7 +36,7 @@ initial begin //test use
 
 always @(posedge clk)
 begin
-	if(we_1&(write_reg1!=5'd0))
+	if(we_1)
 		file[write_reg1]<=write_reg1_data;
 
 end
